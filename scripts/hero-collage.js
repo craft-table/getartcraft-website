@@ -24,8 +24,13 @@
     return;
   }
 
-  // The CDN base URL — load videos directly from the original site
-  var CDN_BASE = 'https://getartcraft.com/cdn-media/videos';
+  // CDN base URL — use the local copy (same-origin, so it works as WebGL texture).
+  // The videos are at /getartcraft-website/cdn-media/videos/001.mp4 - 035.mp4
+  // which we downloaded and committed to the repo.
+  // Note: the original getartcraft.com CDN doesn't send CORS headers, so we
+  // can't use those cross-origin URLs as WebGL textures. Our local copy is
+  // same-origin and works correctly.
+  var CDN_BASE = '/getartcraft-website/cdn-media/videos';
   var VIDEO_COUNT = 35;
 
   function pad3(n) {
