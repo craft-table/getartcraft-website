@@ -1,0 +1,83 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, cancel in-progress runs
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  # ---------- TEST JOB ----------
+  # Validates that every HTML file is parseable and that all internal links
+  # resolve to real local files. Blocks deployment if anything is broken.
+  test:
+    name: Test site (HTML + link validation)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Show repo structure summary
+        run: |
+          echo "=== Repo contents (top level) ==="
+          ls -la
+          echo ""
+          echo "=== getartcraft.com/ file count ==="
+          find getartcraft.com -type f | wc -l
+          echo ""
+          echo "=== Total repo size ==="
+          du -sh .
+
+      - name: Run website tests
+        run: python3 scripts/test_website.py
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: |
+            getartcraft.com/**/*.html
+            scripts/
+
+  # ---------- DEPLOY JOB ----------
+  # Uploads the getartcraft.com/ directory as a Pages artifact and deploys it.
+  # Only runs after the test job succeeds.
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: getartcraft.com
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
