@@ -19,12 +19,13 @@ from html.parser import HTMLParser
 # <repo>/scripts/test_website.py — so parent.parent == repo root.
 # Set SITE_ROOT env var to override.
 SCRIPT_PATH = Path(__file__).resolve()
-DEFAULT_ROOT = SCRIPT_PATH.parent.parent  # CI: <repo>/. Local fallback below.
-ROOT = Path(os.environ.get("SITE_ROOT", str(DEFAULT_ROOT)))
-SITE_ROOT = ROOT / "getartcraft.com"
-# Local fallback when run from /home/z/my-project/scripts/ — point to the actual mirror
-if not SITE_ROOT.exists() and Path("/home/z/my-project/repos/getartcraft-website/getartcraft.com").exists():
-    SITE_ROOT = Path("/home/z/my-project/repos/getartcraft-website/getartcraft.com")
+ROOT = Path(os.environ.get("SITE_ROOT", str(SCRIPT_PATH.parent.parent)))
+# Site files used to live under getartcraft.com/ but were moved to repo root
+# so GitHub Pages in legacy mode serves them directly. Try root first, then
+# fall back to getartcraft.com/ for backward compatibility.
+SITE_ROOT = ROOT
+if not (SITE_ROOT / "apps.html").exists() and (ROOT / "getartcraft.com" / "apps.html").exists():
+    SITE_ROOT = ROOT / "getartcraft.com"
 
 errors = []
 warnings = []

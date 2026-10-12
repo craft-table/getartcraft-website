@@ -8,6 +8,29 @@ Static mirror of **https://getartcraft.com/apps** and related pages, deployed to
 
 Static snapshot of the public-facing ArtCraft website (getartcraft.com), captured for archival purposes with `wget --mirror --convert-links --page-requisites`.
 
+## Structure
+
+```
+/                          # repo root = served site root
+  index.html               # mirror of getartcraft.com homepage
+  apps.html                # mirror of getartcraft.com/apps (the apps landing page)
+  apps/                    # per-app pages (photocraft.html, vectorcraft.html, ...)
+  images/                  # app icons, screenshots, blog images
+  videos/features/         # .webm demo clips
+  _next/static/            # Next.js build assets (CSS/JS chunks, fonts, media)
+  faq/                     # FAQ articles
+  tutorials/               # Tutorial articles
+  news/                    # News articles
+  download.html
+  pricing.html
+  support.html
+  press-kit.html
+  app.getartcraft.com/     # the web-app React bundle (kept for reference, not used)
+  .nojekyll                # disables Jekyll processing on GitHub Pages
+  .github/workflows/       # CI workflow (test + deploy)
+  scripts/test_website.py # HTML/link validation test runner
+```
+
 ## Pages included
 
 - `/apps` — landing page listing all Craft apps
@@ -21,37 +44,17 @@ Static snapshot of the public-facing ArtCraft website (getartcraft.com), capture
 This repo includes a GitHub Actions workflow at `.github/workflows/deploy-pages.yml` that:
 
 1. **Tests** every HTML file for parse errors and checks all internal links resolve to real local files (`scripts/test_website.py`).
-2. **Deploys** the `getartcraft.com/` directory to GitHub Pages on every push to `main`.
-
-Both jobs also run on `workflow_dispatch` (manual trigger).
+2. **Deploys** the site to GitHub Pages on every push to `main`.
 
 ## How to view locally
 
 ```bash
-cd getartcraft.com
+# From the repo root:
 python3 -m http.server 8080
 # open http://localhost:8080/apps.html
 ```
 
-## How to re-mirror the source site
-
-```bash
-wget \
-    --mirror \
-    --convert-links \
-    --adjust-extension \
-    --page-requisites \
-    --no-parent \
-    --span-hosts \
-    --domains=getartcraft.com,app.getartcraft.com \
-    --user-agent="Mozilla/5.0" \
-    -e robots=off \
-    https://getartcraft.com/apps
-```
-
-Then run `python3 scripts/fix_links.py` (if present) to rewrite cross-domain relative paths back to absolute URLs.
-
 ## Notes
 
-- This is a snapshot — links to `app.getartcraft.com/*` (the live AI generation tools) will redirect to the live site because those routes require server-side rendering.
+- This is a snapshot — links to `app.getartcraft.com/*` (the live AI generation tools) redirect to the live site because those routes require server-side rendering.
 - All trademarks and content belong to ArtCraft Studios. This mirror is for backup purposes only.
