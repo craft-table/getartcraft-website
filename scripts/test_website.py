@@ -49,7 +49,11 @@ class LinkExtractor(HTMLParser):
 
 
 def normalize_link(href: str) -> str | None:
-    """Return the local path a link points to, or None if external/special."""
+    """Return the local path a link points to, or None if external/special.
+    
+    Returns paths with leading '/' if they're absolute (relative to SITE_ROOT),
+    or as-is if they're relative (resolved relative to source_html.parent).
+    """
     if not href:
         return None
     # Strip fragment
@@ -59,18 +63,50 @@ def normalize_link(href: str) -> str | None:
     # Skip external URLs
     if href.startswith(("http://", "https://", "//", "mailto:", "tel:", "data:", "javascript:")):
         return None
-    # Skip absolute URLs that point to the site itself (e.g. /apps)
-    if href.startswith("/"):
-        href = href.lstrip("/")
+    # Strip the GitHub Pages base prefix if present — keep the path as absolute
+    PAGES_BASE = "/getartcraft-website"
+    if href.startswith(PAGES_BASE + "/"):
+        href = href[len(PAGES_BASE):]  # leaves the leading / intact
+    elif href == PAGES_BASE or href == PAGES_BASE + "/":
+        return "/index.html"  # absolute path to homepage
     # Strip query string
     href = href.split("?")[0]
+    # Return as-is (whether absolute with leading / or relative without)
     return href
 
 
 def check_link_exists(local_path: str, source_html: Path) -> bool:
-    """Check whether `local_path` resolves to a real file relative to source_html."""
+    """Check whether `local_path` resolves to a real file relative to source_html.
+    
+    Handles both:
+      - Relative paths: 'image.webp' (resolved relative to source_html.parent)
+      - Absolute paths: '_next/foo.js' (resolved relative to SITE_ROOT)
+      - Root path '/' (resolved to 'index.html')
+    """
     if not local_path:
         return True
+    # Root path maps to index.html
+    if local_path == "/" or local_path == "":
+        return "index.html" in all_files
+    # If path is absolute (starts with /), strip the leading / and check at SITE_ROOT
+    if local_path.startswith("/"):
+        rel_str = local_path.lstrip("/")
+        if not rel_str:
+            return "index.html" in all_files
+        if rel_str in all_files:
+            return True
+        # Try case-insensitive
+        if rel_str.lower() in all_files_lower:
+            return True
+        # Try with .html appended (Next.js pretty URLs)
+        if not re.search(r'\.(html|htm|css|js|png|jpg|jpeg|gif|webp|svg|webm|mp4|woff|woff2|ttf|ico|pdf)$', rel_str):
+            candidate_html = rel_str + ".html"
+            if candidate_html in all_files or candidate_html.lower() in all_files_lower:
+                return True
+            candidate_html2 = rel_str.rstrip("/") + ".html"
+            if candidate_html2 in all_files or candidate_html2.lower() in all_files_lower:
+                return True
+        return False
     # Try direct relative
     candidate = (source_html.parent / local_path).resolve()
     try:
