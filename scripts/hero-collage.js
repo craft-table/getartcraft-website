@@ -37,15 +37,15 @@
     if (typeof window.THREE !== 'undefined') {
       return Promise.resolve(window.THREE);
     }
-    // Otherwise, load Three.js from a CDN
+    // Otherwise, load Three.js (r150 UMD build exposes THREE as window.THREE)
     return new Promise(function (resolve, reject) {
       var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.min.js';
+      s.src = 'https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js';
       s.onload = function () {
         if (window.THREE) {
           resolve(window.THREE);
         } else {
-          reject(new Error('THREE failed to load'));
+          reject(new Error('THREE failed to load as global'));
         }
       };
       s.onerror = function () { reject(new Error('Failed to load Three.js')); };
