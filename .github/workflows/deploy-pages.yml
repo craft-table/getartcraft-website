@@ -10,6 +10,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # Required so configure-pages can CREATE the Pages site on an org repo
+  administration: write
 
 # Allow only one concurrent deployment, cancel in-progress runs
 concurrency:
