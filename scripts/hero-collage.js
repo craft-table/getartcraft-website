@@ -32,21 +32,24 @@
 
     var style = document.createElement('style');
     style.textContent = [
+      // Remove the inline opacity:1 by overriding with !important during animation
+      '.wm-letter { opacity: 0 !important; }',
       '@keyframes heroLetterReveal {',
-      '  0% { opacity: 0; transform: translateY(40px) scale(0.85); }',
-      '  60% { opacity: 1; transform: translateY(-4px) scale(1.02); }',
-      '  100% { opacity: 1; transform: translateY(0) scale(1); }',
+      '  0% { opacity: 0 !important; transform: translateY(60px) scale(0.7) rotate(-5deg); }',
+      '  50% { opacity: 0.6 !important; transform: translateY(-8px) scale(1.05) rotate(2deg); }',
+      '  100% { opacity: 1 !important; transform: translateY(0) scale(1) rotate(0deg); }',
       '}',
       '.wm-letter {',
-      '  animation: heroLetterReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;',
+      '  animation: heroLetterReveal 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;',
       '}',
     ].join('\n');
     document.head.appendChild(style);
 
+    // Stagger the animation per-letter (longer delays for more visible effect)
     letters.forEach(function (letter, i) {
-      letter.style.animationDelay = (i * 80) + 'ms';
+      letter.style.animationDelay = (i * 150) + 'ms';
     });
-    console.log('[hero-collage] Animating', letters.length, 'letters');
+    console.log('[hero-collage] Animating', letters.length, 'letters with stagger');
   }
 
   // === HERO SECTION CONTENT REVEAL ===
@@ -54,7 +57,7 @@
     var style = document.createElement('style');
     style.textContent = [
       '@keyframes heroContentReveal {',
-      '  0% { opacity: 0; transform: translateY(20px); }',
+      '  0% { opacity: 0; transform: translateY(30px); }',
       '  100% { opacity: 1; transform: translateY(0); }',
       '}',
       '#hero h1, #hero h2,',
@@ -62,8 +65,16 @@
       '#hero [data-reveal],',
       '#hero [data-cta],',
       '#hero .pointer-events-auto > * {',
-      '  animation: heroContentReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;',
-      '  animation-delay: 0.4s;',
+      '  animation: heroContentReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;',
+      '  animation-delay: 0.8s;',
+      '}',
+      // Background pattern (concentric circles) - fade in slowly
+      '@keyframes heroBgFadeIn {',
+      '  0% { opacity: 0; }',
+      '  100% { opacity: 1; }',
+      '}',
+      '#hero [aria-hidden="true"] {',
+      '  animation: heroBgFadeIn 2s ease-out both;',
       '}',
     ].join('\n');
     document.head.appendChild(style);
